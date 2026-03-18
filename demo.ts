@@ -81,7 +81,7 @@ const shapingPattern = `---
 cast-on: 6
 ---
 Row 1 (RS): k1, m1l, k2, m1r, k1
-Row 2 (WS): p8`
+Row 2 (WS): p6`
 
 console.log(shapingPattern)
 const shapingResult = parse(shapingPattern)
@@ -89,7 +89,7 @@ if (shapingResult.ok && shapingResult.value.kind === 'block') {
   const block = shapingResult.value as Pattern & { kind: 'block' }
   const v = validateBlock(block)
   console.log(v.ok
-    ? '✓ 유효 — m1l(+1), m1r(+1)로 6코 → 8코'
+    ? '✓ 유효 — m1l(+1), m1r(+1)로 늘리기 포함 셰이핑 검증 통과'
     : '✗ 무효:\n' + formatValidationErrors((v as any).error, 'ko'))
   console.log()
 }
