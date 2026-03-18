@@ -1,4 +1,7 @@
 export { renderText } from './text.js'
+export type { TextStyle } from './text.js'
 export { computeStats } from './stats.js'
 export type { PatternStats } from './stats.js'
 export { renderSvg } from './svg.js'
+export type { ChartStyle, SymbolSet, SymbolRenderer } from './symbols/index.js'
+export { getSymbolSet } from './symbols/index.js'
