@@ -6,6 +6,9 @@
   "directories": {
     "doc": "docs"
   },
+  "bin": {
+    "knitt": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
