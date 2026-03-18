@@ -97,6 +97,55 @@ describe('renderSvg', () => {
   })
 })
 
+describe('renderSvg with style', () => {
+  const knit: Pattern = { kind: 'stitch', value: { kind: 'knit' } }
+  const purl: Pattern = { kind: 'stitch', value: { kind: 'purl' } }
+
+  const block: Pattern = {
+    kind: 'block',
+    castOn: 2,
+    rows: [{
+      kind: 'row',
+      stitches: [knit, purl],
+      side: 'RS',
+      rowNumber: 1,
+    }],
+  }
+
+  it('defaults to standard style', () => {
+    const svg = renderSvg(block)
+    expect(svg).toContain('<svg')
+    expect(svg).toContain('<rect')
+  })
+
+  it('renders with standard style explicitly', () => {
+    const svg = renderSvg(block, 'standard')
+    expect(svg).toContain('<svg')
+  })
+
+  it('renders with jis style', () => {
+    const svg = renderSvg(block, 'jis')
+    expect(svg).toContain('<svg')
+  })
+
+  it('jis knit differs from standard knit', () => {
+    const knitBlock: Pattern = {
+      kind: 'block',
+      castOn: 1,
+      rows: [{
+        kind: 'row',
+        stitches: [knit],
+        side: 'RS',
+        rowNumber: 1,
+      }],
+    }
+    const standard = renderSvg(knitBlock, 'standard')
+    const jis = renderSvg(knitBlock, 'jis')
+    expect(standard).not.toContain('<line')
+    expect(jis).toContain('<line')
+  })
+})
+
 describe('new stitch SVG symbols', () => {
   it('renders m1l with arrow symbol', () => {
     const block: Pattern = {

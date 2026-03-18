@@ -1,13 +1,13 @@
 import type { Pattern, Stitch } from '../domain/types.js'
+import { getSymbolSet } from './symbols/index.js'
+import type { ChartStyle } from './symbols/index.js'
 
 const CELL_SIZE = 16
 
-/** Recursively expand a Pattern into a flat array of Stitch values. */
 function flattenPattern(pattern: Pattern): Stitch[] {
   switch (pattern.kind) {
     case 'stitch':
       return [pattern.value]
-
     case 'repeat': {
       const expanded: Stitch[] = []
       for (let i = 0; i < pattern.times; i++) {
@@ -17,7 +17,6 @@ function flattenPattern(pattern: Pattern): Stitch[] {
       }
       return expanded
     }
-
     case 'row': {
       const stitches: Stitch[] = []
       for (const p of pattern.stitches) {
@@ -25,7 +24,6 @@ function flattenPattern(pattern: Pattern): Stitch[] {
       }
       return stitches
     }
-
     case 'block': {
       const stitches: Stitch[] = []
       for (const row of pattern.rows) {
@@ -36,104 +34,12 @@ function flattenPattern(pattern: Pattern): Stitch[] {
   }
 }
 
-/** Render a single cell at grid position (col, row) as SVG elements. */
-function renderCell(stitch: Stitch, x: number, y: number): string {
-  const s = CELL_SIZE
-  const cx = x + s / 2
-  const cy = y + s / 2
-  const pad = 3
-
-  // Background rect for every cell
-  const bg = `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="white" stroke="#999" stroke-width="0.5"/>`
-
-  switch (stitch.kind) {
-    case 'knit':
-      // Empty rect — just the background is enough
-      return bg
-
-    case 'purl':
-      // Dot (filled circle) at center
-      return bg + `<circle cx="${cx}" cy="${cy}" r="${s / 5}" fill="#333"/>`
-
-    case 'yarn-over':
-      // Open circle at center
-      return bg + `<circle cx="${cx}" cy="${cy}" r="${s / 4}" fill="none" stroke="#333" stroke-width="1"/>`
-
-    case 'k2tog':
-      // Right-leaning line (/)
-      return bg + `<line x1="${x + pad}" y1="${y + s - pad}" x2="${x + s - pad}" y2="${y + pad}" stroke="#333" stroke-width="1.5"/>`
-
-    case 'ssk':
-      // Left-leaning line (\)
-      return bg + `<line x1="${x + pad}" y1="${y + pad}" x2="${x + s - pad}" y2="${y + s - pad}" stroke="#333" stroke-width="1.5"/>`
-
-    case 'kfb': {
-      // V shape
-      const mid = x + s / 2
-      return (
-        bg +
-        `<polyline points="${x + pad},${y + pad} ${mid},${y + s - pad} ${x + s - pad},${y + pad}" ` +
-        `fill="none" stroke="#333" stroke-width="1.5"/>`
-      )
-    }
-
-    case 'slip':
-      // Horizontal dash
-      return bg + `<line x1="${x + pad}" y1="${cy}" x2="${x + s - pad}" y2="${cy}" stroke="#333" stroke-width="1.5"/>`
-
-    case 'cable': {
-      // Curved path representing a cable cross
-      const ctrl1x = cx - s / 4
-      const ctrl2x = cx + s / 4
-      return (
-        bg +
-        `<path d="M${x + pad},${y + pad} C${ctrl1x},${cy} ${ctrl2x},${cy} ${x + s - pad},${y + s - pad}" ` +
-        `fill="none" stroke="#333" stroke-width="1.5"/>` +
-        `<path d="M${x + pad},${y + s - pad} C${ctrl1x},${cy} ${ctrl2x},${cy} ${x + s - pad},${y + pad}" ` +
-        `fill="none" stroke="#333" stroke-width="1.5"/>`
-      )
-    }
-
-    case 'm1l':
-      return bg + `<path d="M${x + s - pad},${y + pad} L${x + pad},${cy} L${x + s - pad},${y + s - pad}" fill="none" stroke="#333" stroke-width="1.5"/>`
-
-    case 'm1r':
-      return bg + `<path d="M${x + pad},${y + pad} L${x + s - pad},${cy} L${x + pad},${y + s - pad}" fill="none" stroke="#333" stroke-width="1.5"/>`
-
-    case 'p2tog':
-      return bg + `<circle cx="${cx}" cy="${cy}" r="2" fill="#333"/>` +
-        `<line x1="${x + pad}" y1="${y + s - pad}" x2="${x + s - pad}" y2="${y + pad}" stroke="#333" stroke-width="1"/>`
-
-    case 'ssp':
-      return bg + `<circle cx="${cx}" cy="${cy}" r="2" fill="#333"/>` +
-        `<line x1="${x + pad}" y1="${y + pad}" x2="${x + s - pad}" y2="${y + s - pad}" stroke="#333" stroke-width="1"/>`
-
-    case 'sk2p':
-      return bg + `<path d="M${x + pad},${y + pad} L${cx},${y + s - pad} L${x + s - pad},${y + pad}" fill="none" stroke="#333" stroke-width="1.5"/>` +
-        `<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${y + s - pad}" stroke="#333" stroke-width="1.5"/>`
-
-    case 'bind-off':
-      return bg + `<line x1="${x + pad}" y1="${y + pad}" x2="${x + s - pad}" y2="${y + s - pad}" stroke="#333" stroke-width="1.5"/>` +
-        `<line x1="${x + s - pad}" y1="${y + pad}" x2="${x + pad}" y2="${y + s - pad}" stroke="#333" stroke-width="1.5"/>`
-
-    case 'pick-up':
-      return bg + `<path d="M${x + pad},${y + s - pad} L${cx},${y + pad} L${x + s - pad},${y + s - pad}" fill="none" stroke="#333" stroke-width="1.5"/>`
-  }
-}
-
-/**
- * Render a knitting Pattern as an SVG chart string.
- *
- * Only `block` patterns produce a full chart grid. All other pattern kinds
- * return a minimal empty SVG.
- *
- * Charts read bottom-to-top: row index 0 is placed at the bottom.
- */
-export function renderSvg(pattern: Pattern): string {
+export function renderSvg(pattern: Pattern, style: ChartStyle = 'standard'): string {
   if (pattern.kind !== 'block') {
     return '<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0"></svg>'
   }
 
+  const symbols = getSymbolSet(style)
   const rows = pattern.rows
   const numRows = rows.length
   const numCols = pattern.castOn
@@ -148,7 +54,6 @@ export function renderSvg(pattern: Pattern): string {
     if (rowPattern === undefined) continue
     const stitches = flattenPattern(rowPattern)
 
-    // Knitting charts are read bottom-to-top: row index 0 → bottom visual row
     const visualRow = numRows - 1 - rowIdx
     const y = visualRow * CELL_SIZE
 
@@ -156,7 +61,7 @@ export function renderSvg(pattern: Pattern): string {
       const x = col * CELL_SIZE
       const stitch = stitches[col]
       if (stitch === undefined) continue
-      cells.push(renderCell(stitch, x, y))
+      cells.push(symbols[stitch.kind](stitch, x, y, CELL_SIZE))
     }
   }
 
