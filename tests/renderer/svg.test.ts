@@ -96,3 +96,36 @@ describe('renderSvg', () => {
     expect(svg).toContain('height="32"')
   })
 })
+
+describe('new stitch SVG symbols', () => {
+  it('renders m1l with arrow symbol', () => {
+    const block: Pattern = {
+      kind: 'block',
+      castOn: 1,
+      rows: [{
+        kind: 'row',
+        stitches: [{ kind: 'stitch', value: { kind: 'm1l' } }],
+        side: 'RS',
+        rowNumber: 1,
+      }],
+    }
+    const svg = renderSvg(block)
+    expect(svg).toContain('<svg')
+    expect(svg).toContain('<rect')
+  })
+
+  it('renders bind-off with X symbol', () => {
+    const block: Pattern = {
+      kind: 'block',
+      castOn: 1,
+      rows: [{
+        kind: 'row',
+        stitches: [{ kind: 'stitch', value: { kind: 'bind-off' } }],
+        side: 'RS',
+        rowNumber: 1,
+      }],
+    }
+    const svg = renderSvg(block)
+    expect(svg).toContain('<line')
+  })
+})

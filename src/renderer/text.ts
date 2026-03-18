@@ -12,6 +12,13 @@ function stitchNameKo(stitch: Stitch): string {
     case 'kfb': return '앞뒤 겉뜨기'
     case 'slip': return '걸러뜨기'
     case 'cable': return `${stitch.count}코 ${stitch.direction === 'front' ? '앞' : '뒤'} 케이블`
+    case 'm1l': return '왼쪽 늘리기'
+    case 'm1r': return '오른쪽 늘리기'
+    case 'p2tog': return '안뜨기 오른코 줄이기'
+    case 'ssp': return '안뜨기 왼코 줄이기'
+    case 'sk2p': return '중앙 줄이기'
+    case 'bind-off': return '코 마무리'
+    case 'pick-up': return '코 줍기'
   }
 }
 
@@ -25,6 +32,13 @@ function stitchAbbrEn(stitch: Stitch): string {
     case 'kfb': return 'kfb'
     case 'slip': return 'sl'
     case 'cable': return `C${stitch.count}${stitch.direction === 'front' ? 'F' : 'B'}`
+    case 'm1l': return 'm1l'
+    case 'm1r': return 'm1r'
+    case 'p2tog': return 'p2tog'
+    case 'ssp': return 'ssp'
+    case 'sk2p': return 'sk2p'
+    case 'bind-off': return 'bo'
+    case 'pick-up': return 'pu'
   }
 }
 

@@ -93,6 +93,31 @@ function renderCell(stitch: Stitch, x: number, y: number): string {
         `fill="none" stroke="#333" stroke-width="1.5"/>`
       )
     }
+
+    case 'm1l':
+      return bg + `<path d="M${x + s - pad},${y + pad} L${x + pad},${cy} L${x + s - pad},${y + s - pad}" fill="none" stroke="#333" stroke-width="1.5"/>`
+
+    case 'm1r':
+      return bg + `<path d="M${x + pad},${y + pad} L${x + s - pad},${cy} L${x + pad},${y + s - pad}" fill="none" stroke="#333" stroke-width="1.5"/>`
+
+    case 'p2tog':
+      return bg + `<circle cx="${cx}" cy="${cy}" r="2" fill="#333"/>` +
+        `<line x1="${x + pad}" y1="${y + s - pad}" x2="${x + s - pad}" y2="${y + pad}" stroke="#333" stroke-width="1"/>`
+
+    case 'ssp':
+      return bg + `<circle cx="${cx}" cy="${cy}" r="2" fill="#333"/>` +
+        `<line x1="${x + pad}" y1="${y + pad}" x2="${x + s - pad}" y2="${y + s - pad}" stroke="#333" stroke-width="1"/>`
+
+    case 'sk2p':
+      return bg + `<path d="M${x + pad},${y + pad} L${cx},${y + s - pad} L${x + s - pad},${y + pad}" fill="none" stroke="#333" stroke-width="1.5"/>` +
+        `<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${y + s - pad}" stroke="#333" stroke-width="1.5"/>`
+
+    case 'bind-off':
+      return bg + `<line x1="${x + pad}" y1="${y + pad}" x2="${x + s - pad}" y2="${y + s - pad}" stroke="#333" stroke-width="1.5"/>` +
+        `<line x1="${x + s - pad}" y1="${y + pad}" x2="${x + pad}" y2="${y + s - pad}" stroke="#333" stroke-width="1.5"/>`
+
+    case 'pick-up':
+      return bg + `<path d="M${x + pad},${y + s - pad} L${cx},${y + pad} L${x + s - pad},${y + s - pad}" fill="none" stroke="#333" stroke-width="1.5"/>`
   }
 }
 

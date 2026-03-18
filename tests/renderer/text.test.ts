@@ -126,3 +126,38 @@ describe('renderText', () => {
     })
   })
 })
+
+describe('new stitch rendering', () => {
+  it('renders new stitches in Korean', () => {
+    const row: Pattern = {
+      kind: 'row',
+      stitches: [
+        { kind: 'stitch', value: { kind: 'm1l' } },
+        { kind: 'stitch', value: { kind: 'm1r' } },
+        { kind: 'stitch', value: { kind: 'p2tog' } },
+        { kind: 'stitch', value: { kind: 'ssp' } },
+        { kind: 'stitch', value: { kind: 'sk2p' } },
+        { kind: 'stitch', value: { kind: 'bind-off' } },
+        { kind: 'stitch', value: { kind: 'pick-up' } },
+      ],
+      side: 'RS',
+      rowNumber: 1,
+    }
+    const result = renderText(row, 'ko')
+    expect(result).toBe('Row 1 (RS): 왼쪽 늘리기, 오른쪽 늘리기, 안뜨기 오른코 줄이기, 안뜨기 왼코 줄이기, 중앙 줄이기, 코 마무리, 코 줍기')
+  })
+
+  it('renders new stitches in English', () => {
+    const row: Pattern = {
+      kind: 'row',
+      stitches: [
+        { kind: 'stitch', value: { kind: 'm1l' } },
+        { kind: 'stitch', value: { kind: 'bind-off' } },
+        { kind: 'stitch', value: { kind: 'pick-up' } },
+      ],
+      side: 'RS',
+      rowNumber: 1,
+    }
+    expect(renderText(row, 'en')).toBe('Row 1 (RS): m1l, bo, pu')
+  })
+})

@@ -8,6 +8,7 @@ export type PatternStats = {
 
 const ALL_STITCH_KINDS: StitchKind[] = [
   'knit', 'purl', 'yarn-over', 'k2tog', 'ssk', 'kfb', 'slip', 'cable',
+  'm1l', 'm1r', 'p2tog', 'ssp', 'sk2p', 'bind-off', 'pick-up',
 ]
 
 function emptyStitchCounts(): Record<StitchKind, number> {
