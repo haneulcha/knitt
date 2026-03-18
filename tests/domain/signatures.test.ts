@@ -36,3 +36,27 @@ describe('getSignature', () => {
     expect(getSignature(cable)).toEqual({ consumes: 6, produces: 6, delta: 0 })
   })
 })
+
+describe('new stitch signatures', () => {
+  it('m1l produces 1 from nothing', () => {
+    expect(STITCH_SIGNATURES.m1l).toEqual({ consumes: 0, produces: 1, delta: 1 })
+  })
+  it('m1r produces 1 from nothing', () => {
+    expect(STITCH_SIGNATURES.m1r).toEqual({ consumes: 0, produces: 1, delta: 1 })
+  })
+  it('p2tog consumes 2 produces 1', () => {
+    expect(STITCH_SIGNATURES.p2tog).toEqual({ consumes: 2, produces: 1, delta: -1 })
+  })
+  it('ssp consumes 2 produces 1', () => {
+    expect(STITCH_SIGNATURES.ssp).toEqual({ consumes: 2, produces: 1, delta: -1 })
+  })
+  it('sk2p consumes 3 produces 1', () => {
+    expect(STITCH_SIGNATURES.sk2p).toEqual({ consumes: 3, produces: 1, delta: -2 })
+  })
+  it('bind-off consumes 1 produces 0', () => {
+    expect(STITCH_SIGNATURES['bind-off']).toEqual({ consumes: 1, produces: 0, delta: -1 })
+  })
+  it('pick-up consumes 0 produces 1', () => {
+    expect(STITCH_SIGNATURES['pick-up']).toEqual({ consumes: 0, produces: 1, delta: 1 })
+  })
+})
