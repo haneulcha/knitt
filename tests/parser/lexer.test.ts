@@ -101,3 +101,75 @@ describe('tokenize', () => {
     ])
   })
 })
+
+describe('new stitch tokens', () => {
+  it('tokenizes m1l and m1r', () => {
+    const result = tokenize('m1l, m1r')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value).toEqual([
+      { kind: 'FIXED_STITCH', stitch: 'm1l' },
+      { kind: 'COMMA' },
+      { kind: 'FIXED_STITCH', stitch: 'm1r' },
+      { kind: 'EOF' },
+    ])
+  })
+
+  it('tokenizes p2tog', () => {
+    const result = tokenize('p2tog')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value).toEqual([{ kind: 'FIXED_STITCH', stitch: 'p2tog' }, { kind: 'EOF' }])
+  })
+
+  it('tokenizes ssp', () => {
+    const result = tokenize('ssp')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value).toEqual([{ kind: 'FIXED_STITCH', stitch: 'ssp' }, { kind: 'EOF' }])
+  })
+
+  it('tokenizes sk2p', () => {
+    const result = tokenize('sk2p')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value).toEqual([{ kind: 'FIXED_STITCH', stitch: 'sk2p' }, { kind: 'EOF' }])
+  })
+
+  it('tokenizes bo with count', () => {
+    const result = tokenize('bo5')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value).toEqual([{ kind: 'STITCH', stitch: 'bo', count: 5 }, { kind: 'EOF' }])
+  })
+
+  it('tokenizes bare bo as count 1', () => {
+    const result = tokenize('bo')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value).toEqual([{ kind: 'STITCH', stitch: 'bo', count: 1 }, { kind: 'EOF' }])
+  })
+
+  it('tokenizes pu with count', () => {
+    const result = tokenize('pu3')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value).toEqual([{ kind: 'STITCH', stitch: 'pu', count: 3 }, { kind: 'EOF' }])
+  })
+
+  it('p2tog does not collide with p2', () => {
+    const result = tokenize('p2tog, p2')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value[0]).toEqual({ kind: 'FIXED_STITCH', stitch: 'p2tog' })
+    expect(result.value[2]).toEqual({ kind: 'STITCH', stitch: 'p', count: 2 })
+  })
+
+  it('pu does not collide with p', () => {
+    const result = tokenize('pu, p1')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value[0]).toEqual({ kind: 'STITCH', stitch: 'pu', count: 1 })
+    expect(result.value[2]).toEqual({ kind: 'STITCH', stitch: 'p', count: 1 })
+  })
+})

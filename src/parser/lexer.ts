@@ -137,6 +137,59 @@ export function tokenize(input: string): Result<Token[], LexerError> {
       continue
     }
 
+    // p2tog — before p
+    if (input.slice(pos).startsWith('p2tog')) {
+      tokens.push({ kind: 'FIXED_STITCH', stitch: 'p2tog' })
+      pos += 5
+      continue
+    }
+
+    // sk2p — before sl
+    if (input.slice(pos).startsWith('sk2p')) {
+      tokens.push({ kind: 'FIXED_STITCH', stitch: 'sk2p' })
+      pos += 4
+      continue
+    }
+
+    // ssp — before sl
+    if (input.slice(pos).startsWith('ssp')) {
+      tokens.push({ kind: 'FIXED_STITCH', stitch: 'ssp' })
+      pos += 3
+      continue
+    }
+
+    // m1l
+    if (input.slice(pos).startsWith('m1l')) {
+      tokens.push({ kind: 'FIXED_STITCH', stitch: 'm1l' })
+      pos += 3
+      continue
+    }
+
+    // m1r
+    if (input.slice(pos).startsWith('m1r')) {
+      tokens.push({ kind: 'FIXED_STITCH', stitch: 'm1r' })
+      pos += 3
+      continue
+    }
+
+    // pu (pick-up) — before p
+    const puMatch = input.slice(pos).match(/^pu(\d*)/)
+    if (puMatch) {
+      const count = puMatch[1] ? parseInt(puMatch[1], 10) : 1
+      tokens.push({ kind: 'STITCH', stitch: 'pu', count })
+      pos += puMatch[0].length
+      continue
+    }
+
+    // bo (bind-off)
+    const boMatch = input.slice(pos).match(/^bo(\d*)/)
+    if (boMatch) {
+      const count = boMatch[1] ? parseInt(boMatch[1], 10) : 1
+      tokens.push({ kind: 'STITCH', stitch: 'bo', count })
+      pos += boMatch[0].length
+      continue
+    }
+
     // sl (slip) with optional count — check before 'ssk' would match but ssk handled above
     const slMatch = input.slice(pos).match(/^sl(\d*)/)
     if (slMatch) {
