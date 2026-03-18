@@ -122,3 +122,91 @@ Row 1 (RS): k2, p2`
     expect(result.ok).toBe(false)
   })
 })
+
+describe('new stitch parsing', () => {
+  it('parses m1l and m1r', () => {
+    const result = parse('Row 1 (RS): m1l, k2, m1r')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    if (result.value.kind !== 'block') return
+    const row = result.value.rows[0]!
+    if (row.kind !== 'row') return
+    expect(row.stitches[0]).toEqual({ kind: 'stitch', value: { kind: 'm1l' } })
+    expect(row.stitches[2]).toEqual({ kind: 'stitch', value: { kind: 'm1r' } })
+  })
+
+  it('parses p2tog and ssp', () => {
+    const result = parse('Row 1 (RS): p2tog, ssp')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    if (result.value.kind !== 'block') return
+    const row = result.value.rows[0]!
+    if (row.kind !== 'row') return
+    expect(row.stitches[0]).toEqual({ kind: 'stitch', value: { kind: 'p2tog' } })
+    expect(row.stitches[1]).toEqual({ kind: 'stitch', value: { kind: 'ssp' } })
+  })
+
+  it('parses sk2p', () => {
+    const result = parse('Row 1 (RS): sk2p')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    if (result.value.kind !== 'block') return
+    const row = result.value.rows[0]!
+    if (row.kind !== 'row') return
+    expect(row.stitches[0]).toEqual({ kind: 'stitch', value: { kind: 'sk2p' } })
+  })
+
+  it('parses bo5 as repeat of bind-off', () => {
+    const result = parse('Row 1 (RS): bo5')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    if (result.value.kind !== 'block') return
+    const row = result.value.rows[0]!
+    if (row.kind !== 'row') return
+    const item = row.stitches[0]!
+    expect(item.kind).toBe('repeat')
+    if (item.kind !== 'repeat') return
+    expect(item.times).toBe(5)
+    expect(item.body[0]).toEqual({ kind: 'stitch', value: { kind: 'bind-off' } })
+  })
+
+  it('parses pu3 as repeat of pick-up', () => {
+    const result = parse('Row 1 (RS): pu3')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    if (result.value.kind !== 'block') return
+    const row = result.value.rows[0]!
+    if (row.kind !== 'row') return
+    const item = row.stitches[0]!
+    expect(item.kind).toBe('repeat')
+    if (item.kind !== 'repeat') return
+    expect(item.times).toBe(3)
+    expect(item.body[0]).toEqual({ kind: 'stitch', value: { kind: 'pick-up' } })
+  })
+})
+
+describe('metadata integration', () => {
+  it('parses pattern with metadata header', () => {
+    const input = `---
+name: test
+cast-on: 20
+---
+Row 1 (RS): *k2, p2* x5`
+    const result = parse(input)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    if (result.value.kind !== 'block') return
+    expect(result.value.castOn).toBe(20)
+    expect(result.value.metadata?.name).toBe('test')
+    expect(result.value.metadata?.castOn).toBe(20)
+  })
+
+  it('works without metadata header (backwards compatible)', () => {
+    const result = parse('Row 1 (RS): k4')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    if (result.value.kind !== 'block') return
+    expect(result.value.castOn).toBe(0)
+    expect(result.value.metadata).toBeUndefined()
+  })
+})

@@ -1,6 +1,7 @@
 import { Result, ok, err } from '../validator/result.js'
 import { Token, Pattern, Stitch, ParseError } from '../domain/types.js'
 import { tokenize } from './lexer.js'
+import { parseMetadata } from './metadata.js'
 
 type TokenStream = {
   tokens: Token[]
@@ -26,27 +27,27 @@ function consume(stream: TokenStream, kind: Token['kind']): Result<Token, ParseE
   return ok(token)
 }
 
-function mapStitchKind(stitch: 'k' | 'p' | 'sl'): Stitch {
+function mapStitchKind(stitch: 'k' | 'p' | 'sl' | 'bo' | 'pu'): Stitch {
   switch (stitch) {
-    case 'k':
-      return { kind: 'knit' }
-    case 'p':
-      return { kind: 'purl' }
-    case 'sl':
-      return { kind: 'slip' }
+    case 'k': return { kind: 'knit' }
+    case 'p': return { kind: 'purl' }
+    case 'sl': return { kind: 'slip' }
+    case 'bo': return { kind: 'bind-off' }
+    case 'pu': return { kind: 'pick-up' }
   }
 }
 
-function mapFixedStitch(stitch: 'yo' | 'k2tog' | 'ssk' | 'kfb'): Stitch {
+function mapFixedStitch(stitch: 'yo' | 'k2tog' | 'ssk' | 'kfb' | 'm1l' | 'm1r' | 'p2tog' | 'ssp' | 'sk2p'): Stitch {
   switch (stitch) {
-    case 'yo':
-      return { kind: 'yarn-over' }
-    case 'k2tog':
-      return { kind: 'k2tog' }
-    case 'ssk':
-      return { kind: 'ssk' }
-    case 'kfb':
-      return { kind: 'kfb' }
+    case 'yo': return { kind: 'yarn-over' }
+    case 'k2tog': return { kind: 'k2tog' }
+    case 'ssk': return { kind: 'ssk' }
+    case 'kfb': return { kind: 'kfb' }
+    case 'm1l': return { kind: 'm1l' }
+    case 'm1r': return { kind: 'm1r' }
+    case 'p2tog': return { kind: 'p2tog' }
+    case 'ssp': return { kind: 'ssp' }
+    case 'sk2p': return { kind: 'sk2p' }
   }
 }
 
@@ -171,11 +172,29 @@ function parseBlock(stream: TokenStream): Result<Pattern, ParseError> {
 }
 
 export function parse(input: string): Result<Pattern, ParseError> {
-  const tokenizeResult = tokenize(input)
+  const metaResult = parseMetadata(input)
+  if (!metaResult.ok) {
+    return err({ message: metaResult.error.message })
+  }
+
+  const { metadata, rest } = metaResult.value
+
+  const tokenizeResult = tokenize(rest)
   if (!tokenizeResult.ok) {
     return err({ message: tokenizeResult.error.message })
   }
 
   const stream: TokenStream = { tokens: tokenizeResult.value, pos: 0 }
-  return parseBlock(stream)
+  const blockResult = parseBlock(stream)
+  if (!blockResult.ok) return blockResult
+
+  if (metadata && blockResult.value.kind === 'block') {
+    return ok({
+      ...blockResult.value,
+      castOn: metadata.castOn,
+      metadata,
+    })
+  }
+
+  return blockResult
 }
