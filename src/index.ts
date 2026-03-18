@@ -5,6 +5,7 @@ export type {
   StitchSignature,
   ValidationError,
   Token,
+  LexerError,
   ParseError,
 } from './domain/index.js'
 export { STITCH_SIGNATURES, getSignature } from './domain/index.js'
@@ -18,5 +19,6 @@ export { validateStitch, validateRow, validateBlock } from './validator/index.js
 export type { ValidationState } from './validator/index.js'
 
 export { renderText } from './renderer/index.js'
+export { renderSvg } from './renderer/index.js'
 export { computeStats } from './renderer/index.js'
 export type { PatternStats } from './renderer/index.js'

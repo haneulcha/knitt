@@ -5,7 +5,6 @@ export function tokenize(input: string): Result<Token[], LexerError> {
   const tokens: Token[] = []
   let pos = 0
   let line = 1
-  let repeatDepth = 0 // track starts vs ends emitted
 
   function makeError(message: string): Result<Token[], LexerError> {
     return err({ message, position: pos, line })
@@ -74,7 +73,6 @@ export function tokenize(input: string): Result<Token[], LexerError> {
       const closingMatch = afterStar.match(/^[ \t]*x(\d+)/)
       if (closingMatch) {
         tokens.push({ kind: 'REPEAT_END' })
-        repeatDepth = Math.max(0, repeatDepth - 1)
         pos++ // consume the '*'
         // skip whitespace before xN
         skipWhitespace()
@@ -85,7 +83,6 @@ export function tokenize(input: string): Result<Token[], LexerError> {
         }
       } else {
         tokens.push({ kind: 'REPEAT_START' })
-        repeatDepth++
         pos++
       }
       continue
