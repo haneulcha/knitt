@@ -50,3 +50,23 @@ export type ValidationError =
       readonly delta: number
       readonly row: number
     }
+
+// === Lexer Tokens ===
+
+export type Token =
+  | { readonly kind: 'ROW'; readonly number?: number; readonly side: 'RS' | 'WS' }
+  | { readonly kind: 'STITCH'; readonly stitch: 'k' | 'p' | 'sl'; readonly count: number }
+  | { readonly kind: 'FIXED_STITCH'; readonly stitch: 'yo' | 'k2tog' | 'ssk' | 'kfb' }
+  | { readonly kind: 'CABLE'; readonly count: number; readonly direction: 'F' | 'B' }
+  | { readonly kind: 'REPEAT_START' }
+  | { readonly kind: 'REPEAT_END' }
+  | { readonly kind: 'TIMES'; readonly count: number }
+  | { readonly kind: 'COMMA' }
+  | { readonly kind: 'COLON' }
+  | { readonly kind: 'EOF' }
+
+export type LexerError = {
+  readonly message: string
+  readonly position: number
+  readonly line: number
+}
