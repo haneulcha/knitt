@@ -3,94 +3,113 @@ import { validateBlock } from './src/validator/validate.js'
 import { renderText } from './src/renderer/text.js'
 import { renderSvg } from './src/renderer/svg.js'
 import { computeStats } from './src/renderer/stats.js'
+import { formatValidationErrors, formatMetadataError } from './src/validator/format.js'
 import type { Pattern } from './src/domain/types.js'
 import { writeFileSync } from 'node:fs'
 
-const input = `// 2x2 리브 패턴
+// === 1. 메타데이터 헤더 사용 ===
+const ribPattern = `---
+name: 2x2 리브 스카프
+cast-on: 20
+gauge: 20sts x 28rows / 10cm
+yarn: 4ply wool
+---
 Row 1 (RS): *k2, p2* x5
 Row 2 (WS): *p2, k2* x5`
 
-console.log('=== 입력 패턴 ===')
-console.log(input)
+console.log('=== 메타데이터 헤더가 있는 패턴 ===')
+console.log(ribPattern)
 console.log()
 
-// 1. Parse
-const parseResult = parse(input)
-if (!parseResult.ok) {
-  console.error('파싱 실패:', parseResult.error)
+const ribResult = parse(ribPattern)
+if (!ribResult.ok) {
+  console.error('파싱 실패:', ribResult.error)
   process.exit(1)
 }
 
-const block = { ...parseResult.value, castOn: 20 } as Pattern & { kind: 'block' }
+if (ribResult.value.kind === 'block') {
+  const block = ribResult.value as Pattern & { kind: 'block' }
 
-// 2. Validate
-const validationResult = validateBlock(block)
-if (!validationResult.ok) {
-  console.error('검증 실패:', validationResult.error)
-  process.exit(1)
+  // 메타데이터 확인
+  console.log('=== 메타데이터 ===')
+  console.log(`이름: ${block.metadata?.name}`)
+  console.log(`코 수: ${block.castOn}`)
+  console.log(`게이지: ${block.metadata?.gauge}`)
+  console.log(`실: ${block.metadata?.yarn}`)
+  console.log()
+
+  // 검증
+  const validResult = validateBlock(block)
+  if (!validResult.ok) {
+    console.error('검증 실패:\n' + formatValidationErrors(validResult.error, 'ko'))
+    process.exit(1)
+  }
+  console.log('=== 검증 결과 ===')
+  console.log('✓ 패턴이 유효합니다')
+  console.log()
+
+  // 한국어/영어 렌더링
+  console.log('=== 한국어 출력 ===')
+  console.log(renderText(block, 'ko'))
+  console.log()
+
+  console.log('=== English Output ===')
+  console.log(renderText(block, 'en'))
+  console.log()
+
+  // 통계
+  const stats = computeStats(block)
+  console.log('=== 통계 ===')
+  console.log(`총 행 수: ${stats.totalRows}`)
+  console.log(`총 코 수: ${stats.totalStitches}`)
+  for (const [kind, count] of Object.entries(stats.stitchCounts)) {
+    if (count > 0) console.log(`  ${kind}: ${count}`)
+  }
+  console.log()
+
+  // SVG
+  const svg = renderSvg(block)
+  writeFileSync('demo-chart.svg', svg)
+  console.log(`SVG 차트: demo-chart.svg (${svg.length} bytes)`)
+  console.log()
 }
-console.log('=== 검증 결과 ===')
-console.log('✓ 패턴이 유효합니다 (코 수 일관성 확인)')
-console.log()
 
-// 3. Text Render (Korean)
-console.log('=== 한국어 출력 ===')
-console.log(renderText(block, 'ko'))
-console.log()
+// === 2. 새로운 스티치 타입 ===
+console.log('=== 새로운 스티치 (셰이핑) ===')
 
-// 4. Text Render (English)
-console.log('=== English Output ===')
-console.log(renderText(block, 'en'))
-console.log()
+const shapingPattern = `---
+cast-on: 6
+---
+Row 1 (RS): k1, m1l, k2, m1r, k1
+Row 2 (WS): p8`
 
-// 5. Stats
-const stats = computeStats(block)
-console.log('=== 통계 ===')
-console.log(`총 행 수: ${stats.totalRows}`)
-console.log(`총 코 수: ${stats.totalStitches}`)
-console.log('스티치별 분포:')
-for (const [kind, count] of Object.entries(stats.stitchCounts)) {
-  if (count > 0) console.log(`  ${kind}: ${count}`)
+console.log(shapingPattern)
+const shapingResult = parse(shapingPattern)
+if (shapingResult.ok && shapingResult.value.kind === 'block') {
+  const block = shapingResult.value as Pattern & { kind: 'block' }
+  const v = validateBlock(block)
+  console.log(v.ok
+    ? '✓ 유효 — m1l(+1), m1r(+1)로 6코 → 8코'
+    : '✗ 무효:\n' + formatValidationErrors((v as any).error, 'ko'))
+  console.log()
 }
-console.log()
 
-// 6. SVG Chart
-const svg = renderSvg(block)
-writeFileSync('demo-chart.svg', svg)
-console.log('=== SVG 차트 ===')
-console.log(`demo-chart.svg 저장 완료 (${svg.length} bytes)`)
-console.log()
+// === 3. 에러 검출 (잘못된 패턴) ===
+console.log('=== 에러 검출 ===')
 
-// --- 셰이핑 패턴 검증 데모 ---
-console.log('=== 셰이핑 패턴 (증감 검증) ===')
+const badPattern = `---
+cast-on: 5
+---
+Row 1 (RS): k1, sk2p, sk2p`
 
-const shapingInput = `Row 1 (RS): k1, yo, k2tog, k1`
-console.log(`입력: ${shapingInput} (cast on: 4)`)
-
-const shapingResult = parse(shapingInput)
-if (shapingResult.ok) {
-  const shapingBlock = { ...shapingResult.value, castOn: 4 } as Pattern & { kind: 'block' }
-  const v = validateBlock(shapingBlock)
-  console.log(v.ok ? '✓ 유효 — yo(+1)와 k2tog(-1)이 상쇄됨' : '✗ 무효')
-}
-console.log()
-
-// --- 잘못된 패턴 검증 데모 ---
-console.log('=== 잘못된 패턴 (에러 검출) ===')
-
-const badInput = `Row 1 (RS): k2, C4F, k2`
-console.log(`입력: ${badInput} (cast on: 6, 필요: 8)`)
-
-const badResult = parse(badInput)
-if (badResult.ok) {
-  const badBlock = { ...badResult.value, castOn: 6 } as Pattern & { kind: 'block' }
-  const v = validateBlock(badBlock)
+console.log(badPattern)
+console.log('(5코에서 sk2p 두 번 = 6코 필요, 부족)')
+const badResult = parse(badPattern)
+if (badResult.ok && badResult.value.kind === 'block') {
+  const block = badResult.value as Pattern & { kind: 'block' }
+  const v = validateBlock(block)
   if (!v.ok) {
     console.log('✗ 검증 실패:')
-    for (const e of v.error) {
-      if (e.kind === 'insufficient-stitches') {
-        console.log(`  Row ${e.location.row}: ${e.needed}코 필요, ${e.available}코만 있음`)
-      }
-    }
+    console.log(formatValidationErrors(v.error, 'ko'))
   }
 }
