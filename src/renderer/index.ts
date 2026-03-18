@@ -1,3 +1,4 @@
-// TODO: export { renderText } from './text.js' — add when Task 8 (text renderer) is complete
+export { renderText } from './text.js'
 export { computeStats } from './stats.js'
 export type { PatternStats } from './stats.js'
+export { renderSvg } from './svg.js'
