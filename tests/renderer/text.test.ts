@@ -161,3 +161,79 @@ describe('new stitch rendering', () => {
     expect(renderText(row, 'en')).toBe('Row 1 (RS): m1l, bo, pu')
   })
 })
+
+describe('prose style', () => {
+  const knit: Pattern = { kind: 'stitch', value: { kind: 'knit' } }
+  const purl: Pattern = { kind: 'stitch', value: { kind: 'purl' } }
+
+  it('renders repeat as natural language in Korean', () => {
+    const row: Pattern = {
+      kind: 'row',
+      stitches: [{
+        kind: 'repeat',
+        body: [
+          { kind: 'repeat', body: [knit], times: 2 },
+          { kind: 'repeat', body: [purl], times: 2 },
+        ],
+        times: 5,
+      }],
+      side: 'RS',
+      rowNumber: 1,
+    }
+    expect(renderText(row, 'ko', 'prose')).toBe('1단 (겉면): 겉뜨기 2코, 안뜨기 2코를 5번 반복합니다.')
+  })
+
+  it('renders repeat as natural language in English', () => {
+    const row: Pattern = {
+      kind: 'row',
+      stitches: [{
+        kind: 'repeat',
+        body: [
+          { kind: 'repeat', body: [knit], times: 2 },
+          { kind: 'repeat', body: [purl], times: 2 },
+        ],
+        times: 5,
+      }],
+      side: 'RS',
+      rowNumber: 1,
+    }
+    expect(renderText(row, 'en', 'prose')).toBe('Row 1 (RS): Repeat knit 2, purl 2 a total of 5 times.')
+  })
+
+  it('renders single stitch in Korean prose', () => {
+    const row: Pattern = {
+      kind: 'row',
+      stitches: [{ kind: 'repeat', body: [knit], times: 10 }],
+      side: 'WS',
+      rowNumber: 2,
+    }
+    expect(renderText(row, 'ko', 'prose')).toBe('2단 (안면): 겉뜨기 10코를 뜹니다.')
+  })
+
+  it('renders block with prose header in Korean', () => {
+    const block: Pattern = {
+      kind: 'block',
+      castOn: 20,
+      rows: [{
+        kind: 'row',
+        stitches: [{ kind: 'repeat', body: [knit], times: 20 }],
+        side: 'RS',
+        rowNumber: 1,
+      }],
+    }
+    const result = renderText(block, 'ko', 'prose')
+    expect(result).toContain('20코를 만듭니다.')
+    expect(result).toContain('1단 (겉면):')
+  })
+
+  it('defaults to short style when omitted', () => {
+    const row: Pattern = {
+      kind: 'row',
+      stitches: [{ kind: 'repeat', body: [knit], times: 4 }],
+      side: 'RS',
+      rowNumber: 1,
+    }
+    expect(renderText(row, 'ko')).toBe('Row 1 (RS): 겉뜨기 4코')
+    expect(renderText(row, 'ko', 'short')).toBe('Row 1 (RS): 겉뜨기 4코')
+  })
+})

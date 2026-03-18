@@ -88,6 +88,109 @@ function renderPattern(pattern: Pattern, locale: Locale): string {
   }
 }
 
-export function renderText(pattern: Pattern, locale: 'ko' | 'en'): string {
+export type TextStyle = 'short' | 'prose'
+
+function stitchNameProseEn(stitch: Stitch): string {
+  switch (stitch.kind) {
+    case 'knit': return 'knit'
+    case 'purl': return 'purl'
+    case 'yarn-over': return 'yarn over'
+    case 'k2tog': return 'knit 2 together'
+    case 'ssk': return 'slip slip knit'
+    case 'kfb': return 'knit front and back'
+    case 'slip': return 'slip'
+    case 'cable': return `${stitch.count}-stitch ${stitch.direction} cable`
+    case 'm1l': return 'make 1 left'
+    case 'm1r': return 'make 1 right'
+    case 'p2tog': return 'purl 2 together'
+    case 'ssp': return 'slip slip purl'
+    case 'sk2p': return 'slip 1, k2tog, pass slipped stitch over'
+    case 'bind-off': return 'bind off'
+    case 'pick-up': return 'pick up'
+  }
+}
+
+// Renders a repeat's body item as a fragment (no sentence terminator)
+function renderRepeatBodyItemProse(pattern: Pattern, locale: Locale): string {
+  switch (pattern.kind) {
+    case 'stitch': {
+      if (locale === 'ko') return stitchNameKo(pattern.value)
+      return stitchNameProseEn(pattern.value)
+    }
+    case 'repeat': {
+      const { body, times } = pattern
+      const firstNode = body[0]
+      if (body.length === 1 && firstNode !== undefined && firstNode.kind === 'stitch') {
+        if (locale === 'ko') {
+          const name = stitchNameKo(firstNode.value)
+          return `${name} ${times}코`
+        } else {
+          const name = stitchNameProseEn(firstNode.value)
+          return `${name} ${times}`
+        }
+      }
+      const inner = body.map(p => renderRepeatBodyItemProse(p, locale)).join(', ')
+      return inner
+    }
+    default:
+      return renderPatternProse(pattern, locale)
+  }
+}
+
+function renderPatternProse(pattern: Pattern, locale: Locale): string {
+  switch (pattern.kind) {
+    case 'stitch': {
+      if (locale === 'ko') return stitchNameKo(pattern.value)
+      return stitchNameProseEn(pattern.value)
+    }
+
+    case 'repeat': {
+      const { body, times } = pattern
+      const firstNode = body[0]
+      if (body.length === 1 && firstNode !== undefined && firstNode.kind === 'stitch') {
+        if (locale === 'ko') {
+          const name = stitchNameKo(firstNode.value)
+          return `${name} ${times}코를 뜹니다.`
+        } else {
+          const name = stitchNameProseEn(firstNode.value)
+          return `${name} ${times}.`
+        }
+      }
+      // Multi-stitch repeat: render body items as fragments
+      const inner = body.map(p => renderRepeatBodyItemProse(p, locale)).join(', ')
+      if (locale === 'ko') {
+        return `${inner}를 ${times}번 반복합니다.`
+      } else {
+        return `Repeat ${inner} a total of ${times} times.`
+      }
+    }
+
+    case 'row': {
+      const rowNum = pattern.rowNumber ?? ''
+      let header: string
+      if (locale === 'ko') {
+        const side = pattern.side === 'RS' ? '겉면' : '안면'
+        header = `${rowNum}단 (${side}): `
+      } else {
+        header = `Row ${rowNum} (${pattern.side}): `
+      }
+      const stitches = pattern.stitches.map(p => renderPatternProse(p, locale)).join(', ')
+      return header + stitches
+    }
+
+    case 'block': {
+      const castOnLine = locale === 'ko'
+        ? `${pattern.castOn}코를 만듭니다.`
+        : `Cast on ${pattern.castOn} stitches.`
+      const rows = pattern.rows.map(r => renderPatternProse(r, locale))
+      return [castOnLine, ...rows].join('\n')
+    }
+  }
+}
+
+export function renderText(pattern: Pattern, locale: 'ko' | 'en', style: TextStyle = 'short'): string {
+  if (style === 'prose') {
+    return renderPatternProse(pattern, locale)
+  }
   return renderPattern(pattern, locale)
 }
