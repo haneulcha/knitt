@@ -68,18 +68,30 @@ export function tokenize(input: string): Result<Token[], LexerError> {
 
     // Repeat star
     if (ch === '*') {
-      if (repeatDepth > 0) {
+      // Lookahead: if this '*' is followed by optional whitespace then 'xN', it's a REPEAT_END
+      // followed by a TIMES token. Otherwise it's a REPEAT_START.
+      const afterStar = input.slice(pos + 1)
+      const closingMatch = afterStar.match(/^[ \t]*x(\d+)/)
+      if (closingMatch) {
         tokens.push({ kind: 'REPEAT_END' })
-        repeatDepth--
+        repeatDepth = Math.max(0, repeatDepth - 1)
+        pos++ // consume the '*'
+        // skip whitespace before xN
+        skipWhitespace()
+        const timesMatch2 = input.slice(pos).match(/^x(\d+)/)
+        if (timesMatch2) {
+          tokens.push({ kind: 'TIMES', count: parseInt(timesMatch2[1], 10) })
+          pos += timesMatch2[0].length
+        }
       } else {
         tokens.push({ kind: 'REPEAT_START' })
         repeatDepth++
+        pos++
       }
-      pos++
       continue
     }
 
-    // Times: xN
+    // Times: xN (standalone, not preceded by closing *)
     const timesMatch = input.slice(pos).match(/^x(\d+)/)
     if (timesMatch) {
       tokens.push({ kind: 'TIMES', count: parseInt(timesMatch[1], 10) })

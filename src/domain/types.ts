@@ -70,3 +70,8 @@ export type LexerError = {
   readonly position: number
   readonly line: number
 }
+
+export type ParseError = {
+  readonly message: string
+  readonly token?: Token
+}
