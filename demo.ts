@@ -113,3 +113,24 @@ if (badResult.ok && badResult.value.kind === 'block') {
     console.log(formatValidationErrors(v.error, 'ko'))
   }
 }
+
+// === 4. JIS 스타일 차트 ===
+console.log('=== JIS 스타일 SVG 차트 ===')
+// (re-use the ribResult block from above)
+if (ribResult.ok && ribResult.value.kind === 'block') {
+  const block = ribResult.value as Pattern & { kind: 'block' }
+  const jis = renderSvg(block, 'jis')
+  writeFileSync('demo-chart-jis.svg', jis)
+  console.log(`JIS 차트: demo-chart-jis.svg (${jis.length} bytes)`)
+  console.log()
+}
+
+// === 5. 줄글 (prose) 출력 ===
+console.log('=== 줄글 출력 (한국어) ===')
+if (ribResult.ok && ribResult.value.kind === 'block') {
+  const block = ribResult.value as Pattern & { kind: 'block' }
+  console.log(renderText(block, 'ko', 'prose'))
+  console.log()
+  console.log('=== Prose Output (English) ===')
+  console.log(renderText(block, 'en', 'prose'))
+}

@@ -2,3 +2,5 @@ node_modules/
 dist/
 
 demo-chart.svg
+demo-chart-jis.svg
+.superpowers/
