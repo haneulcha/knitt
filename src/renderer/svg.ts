@@ -120,6 +120,7 @@ export function renderSvg(pattern: Pattern): string {
 
   for (let rowIdx = 0; rowIdx < numRows; rowIdx++) {
     const rowPattern = rows[rowIdx]
+    if (rowPattern === undefined) continue
     const stitches = flattenPattern(rowPattern)
 
     // Knitting charts are read bottom-to-top: row index 0 → bottom visual row
@@ -128,7 +129,9 @@ export function renderSvg(pattern: Pattern): string {
 
     for (let col = 0; col < stitches.length; col++) {
       const x = col * CELL_SIZE
-      cells.push(renderCell(stitches[col], x, y))
+      const stitch = stitches[col]
+      if (stitch === undefined) continue
+      cells.push(renderCell(stitch, x, y))
     }
   }
 

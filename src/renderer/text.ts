@@ -38,12 +38,13 @@ function renderPattern(pattern: Pattern, locale: Locale): string {
     case 'repeat': {
       const { body, times } = pattern
       // Check if body is a single stitch node
-      if (body.length === 1 && body[0].kind === 'stitch') {
+      const firstNode = body[0]
+      if (body.length === 1 && firstNode !== undefined && firstNode.kind === 'stitch') {
         if (locale === 'ko') {
-          const name = stitchNameKo(body[0].value)
+          const name = stitchNameKo(firstNode.value)
           return `${name} ${times}코`
         } else {
-          const abbr = stitchAbbrEn(body[0].value)
+          const abbr = stitchAbbrEn(firstNode.value)
           return `${abbr}${times}`
         }
       }

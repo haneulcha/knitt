@@ -12,7 +12,7 @@ export function tokenize(input: string): Result<Token[], LexerError> {
   }
 
   function skipWhitespace(): void {
-    while (pos < input.length && /[ \t]/.test(input[pos])) {
+    while (pos < input.length && /[ \t]/.test(input[pos]!)) {
       pos++
     }
   }
@@ -45,7 +45,7 @@ export function tokenize(input: string): Result<Token[], LexerError> {
     // Row header: "Row N (RS):" or "Row N (WS):"
     const rowMatch = input.slice(pos).match(/^Row\s+(\d+)\s*\((RS|WS)\)/)
     if (rowMatch) {
-      const number = parseInt(rowMatch[1], 10)
+      const number = parseInt(rowMatch[1]!, 10)
       const side = rowMatch[2] as 'RS' | 'WS'
       tokens.push({ kind: 'ROW', number, side })
       pos += rowMatch[0].length
@@ -80,7 +80,7 @@ export function tokenize(input: string): Result<Token[], LexerError> {
         skipWhitespace()
         const timesMatch2 = input.slice(pos).match(/^x(\d+)/)
         if (timesMatch2) {
-          tokens.push({ kind: 'TIMES', count: parseInt(timesMatch2[1], 10) })
+          tokens.push({ kind: 'TIMES', count: parseInt(timesMatch2[1]!, 10) })
           pos += timesMatch2[0].length
         }
       } else {
@@ -94,7 +94,7 @@ export function tokenize(input: string): Result<Token[], LexerError> {
     // Times: xN (standalone, not preceded by closing *)
     const timesMatch = input.slice(pos).match(/^x(\d+)/)
     if (timesMatch) {
-      tokens.push({ kind: 'TIMES', count: parseInt(timesMatch[1], 10) })
+      tokens.push({ kind: 'TIMES', count: parseInt(timesMatch[1]!, 10) })
       pos += timesMatch[0].length
       continue
     }
@@ -104,7 +104,7 @@ export function tokenize(input: string): Result<Token[], LexerError> {
     if (cableMatch) {
       tokens.push({
         kind: 'CABLE',
-        count: parseInt(cableMatch[1], 10),
+        count: parseInt(cableMatch[1]!, 10),
         direction: cableMatch[2] as 'F' | 'B',
       })
       pos += cableMatch[0].length
