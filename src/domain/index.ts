@@ -7,5 +7,7 @@ export type {
   Token,
   LexerError,
   ParseError,
+  PatternMetadata,
+  MetadataError,
 } from './types.js'
 export { STITCH_SIGNATURES, getSignature } from './signatures.js'

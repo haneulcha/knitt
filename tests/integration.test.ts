@@ -44,3 +44,59 @@ Row 2 (WS): *p2, k2* x5`
     expect(result.ok).toBe(false)
   })
 })
+
+describe('metadata + validate integration', () => {
+  it('parses and validates pattern with metadata header', () => {
+    const input = `---
+cast-on: 20
+---
+Row 1 (RS): *k2, p2* x5
+Row 2 (WS): *p2, k2* x5`
+    const parseResult = parse(input)
+    expect(parseResult.ok).toBe(true)
+    if (!parseResult.ok) return
+    if (parseResult.value.kind !== 'block') return
+    expect(parseResult.value.castOn).toBe(20)
+    const validResult = validateBlock(parseResult.value as Pattern & { kind: 'block' })
+    expect(validResult.ok).toBe(true)
+  })
+
+  it('validates new stitch types correctly', () => {
+    const input = `---
+cast-on: 6
+---
+Row 1 (RS): k1, m1l, k2, m1r, k1`
+    const parseResult = parse(input)
+    expect(parseResult.ok).toBe(true)
+    if (!parseResult.ok) return
+    if (parseResult.value.kind !== 'block') return
+    const validResult = validateBlock(parseResult.value as Pattern & { kind: 'block' })
+    expect(validResult.ok).toBe(true)
+  })
+
+  it('sk2p correctly consumes 3 stitches', () => {
+    const input = `---
+cast-on: 5
+---
+Row 1 (RS): k1, sk2p, k1`
+    const parseResult = parse(input)
+    expect(parseResult.ok).toBe(true)
+    if (!parseResult.ok) return
+    if (parseResult.value.kind !== 'block') return
+    const validResult = validateBlock(parseResult.value as Pattern & { kind: 'block' })
+    expect(validResult.ok).toBe(true)
+  })
+
+  it('bind-off reduces count correctly', () => {
+    const input = `---
+cast-on: 10
+---
+Row 1 (RS): bo10`
+    const parseResult = parse(input)
+    expect(parseResult.ok).toBe(true)
+    if (!parseResult.ok) return
+    if (parseResult.value.kind !== 'block') return
+    const validResult = validateBlock(parseResult.value as Pattern & { kind: 'block' })
+    expect(validResult.ok).toBe(true)
+  })
+})
